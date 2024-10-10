@@ -1,0 +1,64 @@
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.common.proxy import Proxy, ProxyType
+import time
+import pandas as pd
+from selenium.webdriver.chrome.service import Service as ChromeService
+from webdriver_manager.chrome import ChromeDriverManager
+browser = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()))
+
+
+
+liste_cars = {
+    "AUDI" : 10,
+    "BMW" : 26,
+    "CITROEN" : 58, 
+    "MERCEDES" : 31,
+    "PEUGEOT" : 129,
+    "RENAULT" : 123, 
+    "VOLKSWAGEN" : 14,
+    "ALFA" : 2,
+    "ALPINE" : 2,
+    "DACIA" : 29,
+    "DS" : 16,
+    "FIAT" : 6,
+    "FORD" : 16,
+    "HYUNDAI" : 4,
+    "JAGUAR" : 3,
+    "JEEP" : 3,
+    "KIA" : 7,
+    "LAND-ROVER" : 5,
+    "LEXUS" : 5,
+    "MASERATI" : 3,
+    "MINI" : 11,
+    "NISSAN" : 21,
+    "OPEL" : 15,
+    "PORSCHE" : 3,
+    "SEAT" : 5,
+    "SUZUKI" : 5,
+    "TOYOTA" : 16,
+    "VOLVO" : 4
+    }
+
+browser.get("https://www.autosphere.fr/recherche?chaine=dacia&market=VO&page=10&critaire_checked[]=year&critaire_checked[]=discount&critaire_checked[]=emission_co2")
+browser.delete_all_cookies()
+for i, j in liste_cars.items() :
+    for k in range(1, j) :
+        url =  f"https://www.autosphere.fr/recherche?market=VO&marque[]={str(i)}&page={str(k)}&critaire_checked[]=marque&critaire_checked[]=year&critaire_checked[]=discount&critaire_checked[]=emission_co2"
+        browser.get(url)
+        browser.delete_all_cookies()
+        blocks = browser.find_elements(By.CLASS_NAME, 'bloc_infos_veh_parent')
+        for block in blocks :
+            prix = WebDriverWait(block, 300).until(EC.presence_of_element_located((By.CLASS_NAME, "bloc_prix")))
+            link_ = WebDriverWait(block, 300).until(EC.presence_of_element_located((By.CLASS_NAME, "fiche_hover")))
+            link  = link_.find_element(By.TAG_NAME, 'a')
+            #print(prix.text)
+            #print(link.get_property("href"))
+            #print("-----------")
+            data = [link.get_property("href"), prix.text]
+            for col_num, value in enumerate(data, start=1):
+                sheet.cell(row=last_row, column=col_num, value=value)
+            last_row += 1
+            existing_workbook.save("link_price.xlsx")
